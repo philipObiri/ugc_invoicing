@@ -1,0 +1,256 @@
+{% load invoice_tags %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+        /* UPDATED: Using the absolute path passed from the view to avoid TTFError */
+        @font-face {
+            font-family: 'DejaVu Sans';
+            src: url("{{ font_path }}");
+        }
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            color: #333;
+            line-height: 1.4;
+            font-size: 15px;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #D4AF37;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            width: 180px;
+            height: auto;
+        }
+        .institution-details {
+            text-align: right;
+            font-size: 16px;
+        }
+        .institution-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #D4AF37;
+            margin-bottom: 5px;
+        }
+        .invoice-title {
+            font-size: 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #D4AF37;
+        }
+        .info-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .info-label {
+            color: #666;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .student-address-box {
+            font-size: 16px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background-color: #f2f2f2;
+            padding: 10px;
+            text-align: left;
+            font-size: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        .totals-table {
+            width: 45%;
+            margin-left: 55%;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        .totals-row td {
+            padding: 8px 10px;
+        }
+        .grand-total {
+            background-color: #D4AF37;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .payment-info-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            background-color: #fafafa;
+        }
+        .payment-info-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #D4AF37;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .payment-info-text {
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+        .bank-details-grid {
+            margin-top: 5px;
+            font-size: 13px;
+        }
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td>
+                {% if logo_path %}
+                    <img src="{{ logo_path }}" class="logo">
+                {% endif %}
+            </td>
+            <td class="institution-details">
+                <div class="institution-name">{{ config.institution_name }}</div>
+                <div>{{ config.institution_address }}</div>
+                <div>{{ config.institution_email }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="invoice-title">Invoice</div>
+
+    <table class="info-table">
+        <tr>
+            <td width="55%" class="student-address-box">
+                <div class="info-label">Bill To:</div>
+                <div class="info-value">{{ invoice.student.full_name }}</div>
+                <div style="margin-top: 5px;"><strong>Program:</strong> {{ invoice.student.program }}</div>
+                <div style="margin-top: 2px;"><strong>Index Number:</strong> {{ invoice.student.index_number }}</div>
+            </td>
+            <td width="45%" style="text-align: right;">
+                <div>
+                    <span class="info-label">Invoice #:</span> 
+                    <span class="info-value">{{ invoice.invoice_number }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Due Date:</span> 
+                    <span class="info-value">{{ invoice.due_date }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Status:</span> 
+                    <span class="info-value">
+                        {% if invoice.is_paid %}PAID{% else %}PENDING{% endif %}
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: center;">Qty</th>
+                <th style="text-align: right;">Rate ({{ currency_symbol }})</th>
+                <th style="text-align: right;">Total ({{ currency_symbol }})</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td style="text-align: center;">{{ item.quantity }}</td>
+                <td style="text-align: right;">{{ item.rate|multiply:exchange_rate|floatformat:2 }}</td>
+                <td style="text-align: right;">
+                    {{ item.total|multiply:exchange_rate|floatformat:2 }}
+                </td>
+            </tr>
+            {% endfor %}
+            
+            {% if invoice.application_fee > 0 %}
+            <tr>
+                <td>Application Fee</td>
+                <td style="text-align: center;">1</td>
+                <td style="text-align: right;">{{ invoice.application_fee|multiply:exchange_rate|floatformat:2 }}</td>
+                <td style="text-align: right;">{{ invoice.application_fee|multiply:exchange_rate|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+
+            {% if invoice.tuition_fee > 0 %}
+            <tr>
+                <td>Tuition Fee</td>
+                <td style="text-align: center;">1</td>
+                <td style="text-align: right;">{{ invoice.tuition_fee|multiply:exchange_rate|floatformat:2 }}</td>
+                <td style="text-align: right;">{{ invoice.tuition_fee|multiply:exchange_rate|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <table class="totals-table">
+        <tr class="totals-row">
+            <td>Subtotal:</td>
+            <td style="text-align: right;">{{ currency_symbol }} {{ invoice.grand_total|multiply:exchange_rate|floatformat:2 }}</td>
+        </tr>
+        <tr class="totals-row">
+            <td>Paid to Date:</td>
+            <td style="text-align: right;">{{ currency_symbol }} {{ invoice.total_paid|multiply:exchange_rate|floatformat:2 }}</td>
+        </tr>
+        <tr class="totals-row grand-total">
+            <td><strong>Balance Due:</strong></td>
+            <td style="text-align: right;"><strong>{{ currency_symbol }} {{ invoice.balance_due|multiply:exchange_rate|floatformat:2 }}</strong></td>
+        </tr>
+    </table>
+
+    {% if payment_instructions or invoice.account_name %}
+    <div class="payment-info-section">
+        <div class="payment-info-title">Payment Instructions / Bank Details</div>
+        
+        {% if invoice.account_name %}
+        <div class="bank-details-grid">
+            <strong>Account Name:</strong> {{ invoice.account_name }}<br>
+            <strong>Account Number:</strong> {{ invoice.account_number }}<br>
+            <strong>Bank:</strong> {{ invoice.bank_name }}<br>
+            <strong>Branch:</strong> {{ invoice.branch_name }}
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+        {% endif %}
+
+        {% if payment_instructions %}
+        <div class="payment-info-text">{{ payment_instructions }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Generated by {{ config.institution_name }} Financial Portal | Thank you for your business.</p>
+        <p>Issued by: <strong>{{ user.get_full_name|default:user.username }}</strong> | {{ generated_at|date:"l, d M Y | g:i A" }}</p>
+    </div>
+</body>
+</html>

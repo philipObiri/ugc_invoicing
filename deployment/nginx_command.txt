@@ -1,0 +1,13 @@
+# Enable the site
+sudo ln -s /etc/nginx/sites-available/finance.ugc.edu.gh /etc/nginx/sites-enabled/
+
+# Test nginx config
+sudo nginx -t
+
+# Reload nginx
+sudo systemctl reload nginx
+
+# Then run certbot when domain is pointed to this server
+sudo certbot --nginx -d finance.ugc.edu.gh -d www.finance.ugc.edu.gh
+
+
