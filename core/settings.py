@@ -14,7 +14,8 @@ load_dotenv()
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # UPDATE: Pulling from .env (Security.W018)
-DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+DEBUG =False
+# DEBUG =True
 
 ALLOWED_HOSTS = [
     'localhost', 
