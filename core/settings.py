@@ -150,6 +150,28 @@ LOGIN_URL = 'login'
 # --- THE FIX ---
 # Set this to False so the /admin/ page uses the DEFAULT Django login
 TWO_FACTOR_PATCH_ADMIN = False 
+# ======================== SECURITY ========================
+# INTERNAL_IPS = ['127.0.0.1']
+if DEBUG==True:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_AGE = 3600
+    CORS_ALLOWED_ORIGINS = ['http://localhost:8006','https://finance.ugc.edu.gh']
+    CORS_ALLOW_CREDENTIALS = True
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
