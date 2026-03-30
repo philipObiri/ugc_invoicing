@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
 # UPDATE: Removed hardcoded fallback for production safety
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # UPDATE: Pulling from .env (Security.W018)
 DEBUG =False
